@@ -21,6 +21,6 @@ const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
     await shot('layer-background.svg', px, `${res}/mipmap-${d}/ic_launcher_background.png`);
     await shot('layer-foreground.svg', px, `${res}/mipmap-${d}/ic_launcher_foreground.png`);
   }
-  await shot('vigie.svg', 512, path.join(__dirname, 'vigie-512.png'));
+  await shot('portix.svg', 512, path.join(__dirname, 'portix-512.png'));
   await browser.close();
 })();

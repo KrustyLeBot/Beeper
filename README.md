@@ -1,12 +1,15 @@
-# Vigie
+# Portix
 
-<img src="branding/vigie-512.png" width="128" align="right" alt="Vigie icon">
+<img src="branding/portix-512.png" width="128" align="right" alt="Portix icon">
 
 An Android app for social networks without their apps: one tab per account (Instagram, TikTok,
 Facebook…, signed in or not), links received in WhatsApp or anywhere else open in the right account,
 and everything else in a temporary browser that forgets everything. It runs on Firefox's engine
 (GeckoView) so that real browser extensions block ads, trackers, cookie banners and the "open the
 app" nags. The interface is in French.
+
+Formerly Vigie (package `app.vigie`): Portix is a new package, `app.portix`, installed next to it. At its first
+start, an empty `Documents/Portix/` gets a copy of `Documents/Vigie/accounts.json` (the old file stays).
 
 ## What it does
 
@@ -35,7 +38,7 @@ app" nags. The interface is in French.
 
 ## Start-up
 
-A link opening Vigie loads at once: that start skips the update checks and syncs 4 seconds later,
+A link opening Portix loads at once: that start skips the update checks and syncs 4 seconds later,
 once the page is on its way. Until that sync the account list is read-only, so a change made on this
 phone cannot overwrite one made on another phone in the meantime (Synchrotron keeps the newer file).
 If the sync removes the account whose tab is on screen, its page carries on in the temporary browser
@@ -44,23 +47,23 @@ Gecko starts them with the engine, and uBlock Origin holds the network until its
 Réglages → Dernier démarrage shows the last cold start step by step (engine, extensions, page
 requested, page shown), to tell a slow engine from a slow site.
 
-## Opening the networks' links with Vigie
+## Opening the networks' links with Portix
 
 Android only gives a web link to an app the site itself vouches for (an `assetlinks.json` file on
 the domain), which only the networks' own apps have. Any other app must be allowed by the user, once,
 per address, and only for addresses no installed app has verified: an app that did (preinstalled Meta
-apps on Samsung, even disabled) keeps them, and Android unticks them for Vigie. Réglages → Liens
+apps on Samsung, even disabled) keeps them, and Android unticks them for Portix. Réglages → Liens
 shows how many addresses are ticked and lists the apps that keep some; turning off their « Ouverture
 liens pris en charge » (or uninstalling them) frees the addresses.
 
-1. Réglages → Liens → « Ouvrir le réglage Android » (or Android's Settings → Apps → Vigie →
+1. Réglages → Liens → « Ouvrir le réglage Android » (or Android's Settings → Apps → Portix →
    Définition par défaut).
 2. Turn on « Ouverture liens pris en charge », then in « Adr. Web prises en charge » tick everything.
 
-From then on a link tapped in WhatsApp, SMS, mail… opens in Vigie. The networks' apps must not be
-installed (they would claim the links themselves). For a link outside the list: Partager → Vigie.
+From then on a link tapped in WhatsApp, SMS, mail… opens in Portix. The networks' apps must not be
+installed (they would claim the links themselves). For a link outside the list: Partager → Portix.
 
-The networks Vigie knows, and so the addresses it can be given, are fixed in the app
+The networks Portix knows, and so the addresses it can be given, are fixed in the app
 (`links/Networks.kt`, mirrored in the manifest; a test keeps them in step): Instagram, TikTok,
 Facebook, X, YouTube, Reddit, LinkedIn, Pinterest, Threads, Bluesky, Snapchat, Twitch, Tumblr. Each
 with its short-link and mobile hosts (`vm.tiktok.com`, `youtu.be`, `redd.it`, `fb.watch`, `t.co`,
@@ -86,14 +89,14 @@ Limits:
 
 - Instagram without an account shows a sign-in wall after a few videos; signed in, it works.
 - TikTok's website pushes the app and limits some videos.
-- If WhatsApp opens a link in its own in-app browser instead of handing it to Android, Vigie never
+- If WhatsApp opens a link in its own in-app browser instead of handing it to Android, Portix never
   sees it.
 - APK about 90 MB (the Firefox engine, arm64 only); GeckoView is pinned in `app/build.gradle.kts`
   and must be bumped with each Firefox release for its security fixes.
 
 ## Data
 
-The account list is `Documents/Vigie/accounts.json`:
+The account list is `Documents/Portix/accounts.json`:
 
 ```json
 {
@@ -113,15 +116,15 @@ and read-only.
 
 ## Proton Drive sync (Synchrotron)
 
-Add `Documents/Vigie` in [Synchrotron](https://github.com/KrustyLeBot/Synchrotron) (e.g. with
-`Apps/Vigie` on Proton Drive). Each time Vigie opens it asks for a sync; the account list is read-only
+Add `Documents/Portix` in [Synchrotron](https://github.com/KrustyLeBot/Synchrotron) (e.g. with
+`Apps/Portix` on Proton Drive). Each time Portix opens it asks for a sync; the account list is read-only
 while it runs (browsing goes on) and is re-read afterwards. An account added on one phone appears on
 the others, signed out.
 
 ## Get the APK
 
 Every push to `main` runs the unit tests, builds the APK signed with the release key and publishes it
-as the single `latest` release (`Vigie.apk`, titled "Vigie build N"; N is the version code). Signing
+as the single `latest` release (`Portix.apk`, titled "Portix build N"; N is the version code). Signing
 key, secrets and CI: `docs/RELEASE.md`. The app offers each new build with a banner (Réglages → Mise
 à jour checks by hand), checks its size and SHA-256 and opens Android's installer.
 
@@ -137,8 +140,8 @@ Without the release key a local build is signed with the SDK's debug key:
 ## Project layout
 
 ```
-app/src/main/java/app/vigie/
-  VigieApp.kt, MainActivity.kt (incoming links), VigieViewModel.kt (accounts, routing, sync)
+app/src/main/java/app/portix/
+  PortixApp.kt, MainActivity.kt (incoming links), PortixViewModel.kt (accounts, routing, sync)
   links/      Networks (the catalogue), Links (cleaning, routing, in-tab rules), pure Kotlin
   data/       Account + WebAddress, AccountsFile (JSON format), AccountStore, AtomicFiles
   web/        Browser (engine and protections), Extensions, Tabs (one context per account, the
@@ -148,5 +151,5 @@ app/src/main/java/app/vigie/
   suite/      suite kit copied from Synchrotron
   sync/       SynchrotronClient, copy of Synchrotron's client library
 app/src/test/   unit tests (routing, cleaning, catalogue vs manifest, file format, addresses)
-branding/   icon: vigie.svg, adaptive-icon layers, render-icons.js, monochrome.py
+branding/   icon: portix.svg, adaptive-icon layers, render-icons.js, monochrome.py
 ```

@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!-- Public Documents/Vigie folder, synced with Proton Drive by Synchrotron -->
+    <!-- Public Documents/Portix folder, synced with Proton Drive by Synchrotron -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
@@ -21,16 +21,16 @@
     </queries>
 
     <application
-        android:name=".VigieApp"
+        android:name=".PortixApp"
         android:allowBackup="false"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Vigie">
+        android:theme="@style/Theme.Portix">
 
-        <!-- One task: a link opened from another app lands in the running Vigie, not a second copy. -->
+        <!-- One task: a link opened from another app lands in the running Portix, not a second copy. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -142,7 +142,7 @@
                 <data android:host="m.tumblr.com" />
             </intent-filter>
 
-            <!-- « Partager → Vigie » from any app, for links outside the list or when a setting was reset. -->
+            <!-- « Partager → Portix » from any app, for links outside the list or when a setting was reset. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

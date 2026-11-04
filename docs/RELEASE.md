@@ -6,27 +6,27 @@ Android only installs an update signed with the same key as the installed app: *
 never commit it.
 
 ```bash
-keytool -genkeypair -v -keystore vigie.jks -alias vigie \
+keytool -genkeypair -v -keystore portix.jks -alias portix \
   -keyalg RSA -keysize 4096 -validity 36500 -storetype JKS
-base64 -w0 vigie.jks > vigie.jks.b64        # macOS: base64 -i vigie.jks -o vigie.jks.b64
+base64 -w0 portix.jks > portix.jks.b64        # macOS: base64 -i portix.jks -o portix.jks.b64
 ```
 
 GitHub → Settings → Environments → `release` (deployment branches: `main` only), secrets:
 
 | Secret | Value |
 |---|---|
-| `VIGIE_KEYSTORE_BASE64` | content of `vigie.jks.b64` |
-| `VIGIE_KEYSTORE_PASSWORD` | keystore password |
-| `VIGIE_KEY_PASSWORD` | key password (the same if keytool's default was kept) |
-| `VIGIE_KEY_ALIAS` | optional: the key alias, when it is not `vigie` |
+| `PORTIX_KEYSTORE_BASE64` | content of `portix.jks.b64` |
+| `PORTIX_KEYSTORE_PASSWORD` | keystore password |
+| `PORTIX_KEY_PASSWORD` | key password (the same if keytool's default was kept) |
+| `PORTIX_KEY_ALIAS` | optional: the key alias, when it is not `portix` |
 
-Keep `vigie.jks` and both passwords somewhere safe (password manager): losing them means
+Keep `portix.jks` and both passwords somewhere safe (password manager): losing them means
 uninstalling the app to install a build signed with a new key.
 
 ## CI
 
 `.github/workflows/build-apk.yml`: unit tests, `assembleRelease` signed with the key above, upload
-as an artifact, then the rolling `latest` release (deleted and recreated, title `Vigie build N`,
+as an artifact, then the rolling `latest` release (deleted and recreated, title `Portix build N`,
 N = run number = versionCode). On `main` a missing key fails the build; pull requests never see the
 key and never publish.
 

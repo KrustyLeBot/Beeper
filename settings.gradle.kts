@@ -13,5 +13,5 @@ dependencyResolutionManagement {
         maven("https://maven.mozilla.org/maven2/")
     }
 }
-rootProject.name = "Vigie"
+rootProject.name = "Portix"
 include(":app")
