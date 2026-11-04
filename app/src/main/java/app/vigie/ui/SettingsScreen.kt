@@ -194,4 +194,16 @@ private fun LinkSettings() {
         }
         OutlinedButton(onClick = { PhoneBrowser.openLinkSettings(context) }) { Text("Ouvrir le réglage Android") }
     }
+    val taken = remember { Networks.ALL.associateWith { PhoneBrowser.claimants(context, it.home) }.filterValues { it.isNotEmpty() } }
+    if (taken.isNotEmpty()) {
+        SettingsCard {
+            Text("Applis qui gardent des liens", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.error)
+            SettingsHint(
+                "Android donne un lien à l'appli qui l'a fait valider par le réseau, et décoche alors cette adresse pour Vigie. " +
+                    "Désinstalle ces applis, ou dans leur page Android → « Définition par défaut », coupe « Ouverture liens pris en charge ». " +
+                    "Une appli préinstallée et désactivée garde ses liens : il faut quand même lui couper ce réglage.",
+            )
+            taken.forEach { (network, apps) -> SettingsHint("${network.name} : ${apps.joinToString(", ")}") }
+        }
+    }
 }

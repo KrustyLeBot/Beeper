@@ -54,6 +54,28 @@ object PhoneBrowser {
         }
     }
 
+    /**
+     * The other apps that claim [url] (disabled ones included: a preinstalled, disabled Facebook still
+     * owns facebook.com), browsers left out. On Android 12+ an app that verified a domain keeps it, and
+     * Android unticks that address for Vigie: these are the apps to uninstall or to strip of the link.
+     */
+    fun claimants(context: Context, url: String): List<String> {
+        val pm = context.packageManager
+        val flags = PackageManager.MATCH_ALL or PackageManager.MATCH_DISABLED_COMPONENTS or PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS
+        fun handlers(u: String) = pm.queryIntentActivities(Intent(Intent.ACTION_VIEW, Uri.parse(u)).addCategory(Intent.CATEGORY_BROWSABLE), flags)
+            .map { it.activityInfo.packageName }.toSet()
+        val browsers = handlers("https://example.org/")
+        return (handlers(url) - browsers - context.packageName).map { pkg ->
+            try {
+                val info = pm.getApplicationInfo(pkg, PackageManager.MATCH_DISABLED_COMPONENTS)
+                val label = pm.getApplicationLabel(info).toString()
+                if (info.enabled) label else "$label (désactivée)"
+            } catch (e: PackageManager.NameNotFoundException) {
+                pkg
+            }
+        }.sorted()
+    }
+
     /** Android's "Ouvrir par défaut" page for Vigie, where the networks' addresses are ticked once. */
     fun openLinkSettings(context: Context) {
         val intent = if (Build.VERSION.SDK_INT >= 31) {
