@@ -4,6 +4,8 @@ import android.content.Context
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
+import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.GeckoSession.PermissionDelegate.ContentPermission
 
 /**
  * The Firefox engine, one per app, with Firefox's own protections at their strictest: Enhanced
@@ -28,6 +30,24 @@ object Browser {
             .remoteDebuggingEnabled(false)
             .aboutConfigEnabled(false)
             .build()
-        return GeckoRuntime.create(context, settings)
+        return GeckoRuntime.create(context, settings).also { forgetAutoplayRefusals(context, it) }
     }
+
+    /**
+     * Builds up to 6 refused every permission, muted autoplay included, and GeckoView stored that
+     * refusal per site for good: reels then waited for a tap. Those stored refusals are dropped once,
+     * so the next request reaches the delegate, which now allows it.
+     */
+    private fun forgetAutoplayRefusals(context: Context, runtime: GeckoRuntime) {
+        val prefs = context.getSharedPreferences("browser", Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_AUTOPLAY_RESET, false)) return
+        runtime.storageController.allPermissions.accept({ list ->
+            list.orEmpty()
+                .filter { it.permission == GeckoSession.PermissionDelegate.PERMISSION_AUTOPLAY_INAUDIBLE && it.value == ContentPermission.VALUE_DENY }
+                .forEach { runtime.storageController.setPermission(it, ContentPermission.VALUE_PROMPT) }
+            prefs.edit().putBoolean(KEY_AUTOPLAY_RESET, true).apply()
+        }, {})
+    }
+
+    private const val KEY_AUTOPLAY_RESET = "autoplay_refusals_forgotten"
 }

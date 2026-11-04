@@ -313,10 +313,15 @@ class Tabs(
             override fun onKill(session: GeckoSession) = restart(key)
         }
         session.promptDelegate = prompts
-        // Location, camera, microphone, notifications…: refused, a feed needs none of them.
         session.permissionDelegate = object : GeckoSession.PermissionDelegate {
+            // GeckoView asks before any video starts on its own, and stores the answer for the site for
+            // good. Muted autoplay (reels, feeds) is allowed, as in Firefox; with sound it waits for a tap.
+            // Location, camera, microphone, notifications…: refused, a feed needs none of them.
             override fun onContentPermissionRequest(session: GeckoSession, perm: ContentPermission): GeckoResult<Int> =
-                GeckoResult.fromValue(ContentPermission.VALUE_DENY)
+                GeckoResult.fromValue(
+                    if (perm.permission == GeckoSession.PermissionDelegate.PERMISSION_AUTOPLAY_INAUDIBLE) ContentPermission.VALUE_ALLOW
+                    else ContentPermission.VALUE_DENY,
+                )
 
             override fun onMediaPermissionRequest(
                 session: GeckoSession, uri: String,
