@@ -46,14 +46,32 @@ object Links {
 
     fun host(url: String): String? = try { URI(url).host?.lowercase() } catch (e: Exception) { null }
 
-    /** The real address behind a shim, without its tracking parameters. */
-    fun clean(url: String): String {
+    /** The real address behind a shim, without its tracking parameters, Instagram's web-view flag added. */
+    fun clean(url: String): String = instagramWeb(stripped(url))
+
+    /**
+     * Instagram shows a reel or a post behind an "open the app / see on the web" page, unless the link
+     * carries `l=1`, which its own « Voir sur le web » button adds.
+     */
+    fun instagramWeb(url: String): String {
+        val uri = try { URI(url) } catch (e: Exception) { return url }
+        if (Networks.of(uri.host)?.id != "instagram" || uri.host == "l.instagram.com") return url
+        val path = uri.path.orEmpty()
+        if (path.isEmpty() || path == "/" || path.startsWith("/accounts/")) return url
+        val query = uri.rawQuery
+        if (query != null && query.split('&').any { it == "l=1" || it.startsWith("l=") }) return url
+        val fragment = uri.rawFragment?.let { "#$it" }.orEmpty()
+        val base = url.substringBefore('#').substringBefore('?')
+        return if (query.isNullOrEmpty()) "$base?l=1$fragment" else "$base?$query&l=1$fragment"
+    }
+
+    private fun stripped(url: String): String {
         val uri = try { URI(url) } catch (e: Exception) { return url }
         val host = uri.host?.lowercase() ?: return url
         SHIMS[host]?.let { param ->
             val path = SHIM_PATHS[host]
             if (path == null || uri.path == path) {
-                query(uri.rawQuery)[param]?.let { inner -> if (inner.startsWith("http")) return clean(inner) }
+                query(uri.rawQuery)[param]?.let { inner -> if (inner.startsWith("http")) return stripped(inner) }
             }
         }
         val raw = uri.rawQuery ?: return url

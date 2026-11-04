@@ -26,17 +26,29 @@ app" nags. The interface is in French.
   stay in the tab, so "sign in with…" keeps working.
 - **Links are cleaned**: link shims (`l.instagram.com`, `l.facebook.com`, Google's `/url`) are
   unwrapped to their real target, and sharing trackers are dropped (`igsh`, TikTok's `_t`/`_r`, X's
-  `s`/`t`, YouTube's `si`, `utm_*`, `fbclid`…).
+  `s`/`t`, YouTube's `si`, `utm_*`, `fbclid`…). Instagram reels and posts get `l=1`, which skips
+  Instagram's « open the app / see on the web » page (what its own « Voir sur le web » adds).
 - **Logins stay**, **tabs stay loaded**, **each tab reopens on its last page** (pages of that account
   only), back walks the tab's history then returns to the app you came from.
 - **Per-account options** (tab menu → Modifier, or Réglages): desktop version, « Ouvrir les liens
   ici », « Effacer cookies et données » (logs that account out only), delete.
 
+## Start-up
+
+A link opening Vigie loads at once: that start skips the Synchrotron sync and the update checks (the
+next normal start does them). Once the extensions were installed, tabs no longer wait for them:
+Gecko starts them with the engine, and uBlock Origin holds the network until its lists are loaded.
+Réglages → Dernier démarrage shows the last cold start step by step (engine, extensions, page
+requested, page shown), to tell a slow engine from a slow site.
+
 ## Opening the networks' links with Vigie
 
 Android only gives a web link to an app the site itself vouches for (an `assetlinks.json` file on
 the domain), which only the networks' own apps have. Any other app must be allowed by the user, once,
-per address:
+per address, and only for addresses no installed app has verified: an app that did (preinstalled Meta
+apps on Samsung, even disabled) keeps them, and Android unticks them for Vigie. Réglages → Liens
+shows how many addresses are ticked and lists the apps that keep some; turning off their « Ouverture
+liens pris en charge » (or uninstalling them) frees the addresses.
 
 1. Réglages → Liens → « Ouvrir le réglage Android » (or Android's Settings → Apps → Vigie →
    Définition par défaut).

@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.vigie.VigieViewModel
 import app.vigie.Screen
+import app.vigie.VigieApp
 import app.vigie.data.Account
 import app.vigie.suite.AboutSettings
 import app.vigie.suite.SectionTitle
@@ -85,6 +86,13 @@ fun SettingsScreen(vm: VigieViewModel, tabs: Tabs, extensions: Extensions, snack
             }
 
             LinkSettings()
+            (LocalContext.current.applicationContext as VigieApp).startup.last?.let { last ->
+                SectionTitle("Dernier démarrage")
+                SettingsCard {
+                    SettingsHint("Depuis le lancement de l'appli : $last.")
+                    SettingsHint("Le moteur Firefox démarre une fois par lancement ; « extensions » attend uBlock Origin et Consent-O-Matic.")
+                }
+            }
             ProtectionSettings(extensions) { title, url -> vm.extensionPage = title to url; vm.screen = Screen.Extension }
             SyncSettings(vm.syncFolder)
             UpdateSettings(vm.updates)

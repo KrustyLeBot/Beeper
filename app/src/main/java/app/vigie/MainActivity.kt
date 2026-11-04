@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
         }
         tabs = Tabs(
             this, app.runtime, app.extensions, prompts, Downloads(this, lifecycleScope, vm::show),
-            owners = { vm.accounts.map { it.owner } }, onRoute = vm::route, onNotice = vm::show,
+            owners = { vm.accounts.map { it.owner } }, onRoute = vm::route, onNotice = vm::show, startup = app.startup,
         )
         setContent {
             VigieTheme {
@@ -84,16 +84,27 @@ class MainActivity : ComponentActivity() {
             Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)?.let { Links.firstUrl(it) }
             else -> null
         } ?: return
+        linkStart = true
+        (application as VigieApp).startup.openedFromLink()
         vm.openLink(url)
     }
+
+    // Set when the app was opened (or brought back) by a link: that start skips the sync and the update checks.
+    private var linkStart = false
 
     override fun onStart() {
         super.onStart()
         tabs.onStart()
-        vm.syncOnOpen()
         vm.checkLinks()
-        vm.updates.checkOnOpen()
-        (application as VigieApp).extensions.updateIfStale()
+        // Posted: onNewIntent, which says whether a link brought the app back, comes after onStart.
+        window.decorView.post {
+            if (!linkStart) {
+                vm.syncOnOpen()
+                vm.updates.checkOnOpen()
+                (application as VigieApp).extensions.updateIfStale()
+            }
+            linkStart = false
+        }
     }
 
     override fun onStop() {

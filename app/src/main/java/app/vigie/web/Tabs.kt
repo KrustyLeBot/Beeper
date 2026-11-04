@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import app.vigie.Startup
 import app.vigie.data.Account
 import app.vigie.links.Links
 import app.vigie.links.Owner
@@ -48,6 +49,7 @@ class Tabs(
     private val owners: () -> List<Owner>,
     private val onRoute: (Target, String) -> Unit,
     private val onNotice: (String) -> Unit,
+    private val startup: Startup,
 ) {
     private val sessions = HashMap<String, GeckoSession>()
     private val configs = HashMap<String, Account>()
@@ -206,6 +208,12 @@ class Tabs(
                     main.post { onRoute(elsewhere, url) }
                     return GeckoResult.fromValue(AllowOrDeny.DENY)
                 }
+                // An Instagram reel or post opened without `l=1` would stop on the "open the app" page.
+                val web = Links.instagramWeb(request.uri)
+                if (web != request.uri) {
+                    main.post { session.loadUri(web) }
+                    return GeckoResult.fromValue(AllowOrDeny.DENY)
+                }
                 // A web page meant for a new window (target=_blank) opens in this tab instead.
                 if (request.target == GeckoSession.NavigationDelegate.TARGET_WINDOW_NEW && request.uri.startsWith("http")) {
                     main.post { session.loadUri(request.uri) }
@@ -256,6 +264,10 @@ class Tabs(
             }
         }
         session.progressDelegate = object : GeckoSession.ProgressDelegate {
+            override fun onPageStart(session: GeckoSession, url: String) {
+                startup.mark(Startup.PAGE)
+            }
+
             override fun onProgressChange(session: GeckoSession, progress: Int) {
                 state.progress = progress
             }
@@ -267,6 +279,10 @@ class Tabs(
         session.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
                 downloads.save(response)
+            }
+
+            override fun onFirstContentfulPaint(session: GeckoSession) {
+                startup.mark(Startup.PAINT)
             }
 
             override fun onCrash(session: GeckoSession) = restart(key)

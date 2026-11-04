@@ -42,12 +42,20 @@ class LinksTest {
     }
 
     @Test fun trackingParametersAreDropped() {
-        assertEquals("https://www.instagram.com/reel/C1/", Links.clean("https://www.instagram.com/reel/C1/?igsh=abc&utm_source=wa"))
+        assertEquals("https://www.instagram.com/reel/C1/?l=1", Links.clean("https://www.instagram.com/reel/C1/?igsh=abc&utm_source=wa"))
         assertEquals("https://www.tiktok.com/@a/video/1", Links.clean("https://www.tiktok.com/@a/video/1?_t=8x&_r=1&is_from_webapp=1"))
         assertEquals("https://x.com/a/status/1", Links.clean("https://x.com/a/status/1?s=46&t=AbC"))
         // On YouTube `t` is the start time and stays.
         assertEquals("https://youtu.be/abc?t=42", Links.clean("https://youtu.be/abc?si=xyz&t=42"))
         assertEquals("https://example.org/search?s=chaise", Links.clean("https://example.org/search?s=chaise"))
+    }
+
+    @Test fun instagramLinksSkipTheAppInterstitial() {
+        assertEquals("https://www.instagram.com/reel/DfT1QabR-0o/?mdxt=MTk&l=1", Links.clean("https://www.instagram.com/reel/DfT1QabR-0o/?mdxt=MTk"))
+        assertEquals("https://www.instagram.com/p/x/?l=1", Links.clean("https://www.instagram.com/p/x/?l=1"))
+        assertEquals("https://www.instagram.com/", Links.clean("https://www.instagram.com/"))
+        assertEquals("https://www.instagram.com/accounts/login/", Links.clean("https://www.instagram.com/accounts/login/"))
+        assertEquals("https://www.tiktok.com/@a", Links.clean("https://www.tiktok.com/@a"))
     }
 
     @Test fun tappedLinksToAnotherNetworkLeaveTheTab() {
