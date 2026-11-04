@@ -35,8 +35,11 @@ app" nags. The interface is in French.
 
 ## Start-up
 
-A link opening Vigie loads at once: that start skips the Synchrotron sync and the update checks (the
-next normal start does them). Once the extensions were installed, tabs no longer wait for them:
+A link opening Vigie loads at once: that start skips the update checks and syncs 4 seconds later,
+once the page is on its way. Until that sync the account list is read-only, so a change made on this
+phone cannot overwrite one made on another phone in the meantime (Synchrotron keeps the newer file).
+If the sync removes the account whose tab is on screen, its page carries on in the temporary browser
+instead of vanishing; a link still waiting for a removed account is routed again. Once the extensions were installed, tabs no longer wait for them:
 Gecko starts them with the engine, and uBlock Origin holds the network until its lists are loaded.
 Réglages → Dernier démarrage shows the last cold start step by step (engine, extensions, page
 requested, page shown), to tell a slow engine from a slow site.

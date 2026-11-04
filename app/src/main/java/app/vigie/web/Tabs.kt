@@ -109,9 +109,14 @@ class Tabs(
 
     fun home(account: Account) = sessions[account.id]?.loadUri(account.url)
 
-    /** Closes the tabs of accounts no longer in the list (e.g. removed on another phone). */
-    fun retain(ids: Set<String>) {
-        (sessions.keys - ids - TEMPORARY).forEach { close(it) }
+    /**
+     * Closes the tabs of accounts no longer in the list (e.g. removed on another phone through the sync)
+     * and returns the page each one showed, so the one on screen can carry on elsewhere. Their cookies
+     * stay: the list may only be unreadable for a moment, and a login must not go with it.
+     */
+    fun retain(ids: Set<String>): Map<String, String> {
+        val gone = sessions.keys - ids - TEMPORARY
+        return gone.associateWith { key -> state(key).url.also { close(key); states.remove(key) } }
     }
 
     /** Forgets the account entirely: its tab, its cookies, storage and cache, its last page. */

@@ -77,6 +77,7 @@ import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.VisibilityOff
 import app.vigie.links.Links
+import app.vigie.links.Target
 import app.vigie.web.PhoneBrowser
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.ui.Alignment
@@ -113,13 +114,28 @@ fun VigieRoot(vm: VigieViewModel, tabs: Tabs, extensions: Extensions, runtime: G
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(Unit) { vm.notices.collect { snackbar.showSnackbar(it) } }
     // Accounts removed elsewhere (another phone, through the sync) lose their open tab too.
-    LaunchedEffect(vm.accounts) { tabs.retain(vm.accounts.map { it.id }.toSet()) }
+    LaunchedEffect(vm.accounts) {
+        val gone = tabs.retain(vm.accounts.map { it.id }.toSet())
+        // The account on screen vanished: its page carries on in the temporary browser instead of disappearing.
+        val shown = vm.selectedKey
+        val url = gone[shown]
+        if (shown != null && url != null && url.startsWith("http")) {
+            vm.show(
+                if (vm.storeError != null) "Liste des comptes illisible : la page continue dans le navigateur temporaire"
+                else "Ce compte a été supprimé sur un autre appareil : la page continue dans le navigateur temporaire",
+            )
+            vm.route(Target.Temporary, url)
+        }
+    }
     // A link (from another app, or routed out of a tab) opens once the blockers are in.
     LaunchedEffect(vm.pendingLink, extensions.ready) {
         val link = vm.pendingLink ?: return@LaunchedEffect
         if (!extensions.ready) return@LaunchedEffect
         vm.pendingLink = null
-        tabs.open(link.key, vm.accounts.firstOrNull { it.id == link.key }, link.url)
+        val account = vm.accounts.firstOrNull { it.id == link.key }
+        // Its account was removed in between (a sync): routed again, to another account or the temporary browser.
+        if (link.key != Tabs.TEMPORARY && account == null) vm.openLink(link.url)
+        else tabs.open(link.key, account, link.url)
     }
     BackHandler(enabled = vm.screen != Screen.Main) { vm.screen = if (vm.screen == Screen.Extension) Screen.Settings else Screen.Main }
     when (vm.screen) {

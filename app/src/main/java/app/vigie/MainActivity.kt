@@ -89,7 +89,8 @@ class MainActivity : ComponentActivity() {
         vm.openLink(url)
     }
 
-    // Set when the app was opened (or brought back) by a link: that start skips the sync and the update checks.
+    // Set when the app was opened (or brought back) by a link: that start syncs a few seconds later, once
+    // the page is on its way, and skips the update checks.
     private var linkStart = false
 
     override fun onStart() {
@@ -102,6 +103,8 @@ class MainActivity : ComponentActivity() {
                 vm.syncOnOpen()
                 vm.updates.checkOnOpen()
                 (application as VigieApp).extensions.updateIfStale()
+            } else {
+                vm.syncSoon()
             }
             linkStart = false
         }

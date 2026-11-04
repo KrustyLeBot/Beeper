@@ -17,7 +17,10 @@ import app.vigie.sync.SynchrotronClient
 import app.vigie.web.LinkStatus
 import app.vigie.web.PhoneBrowser
 import app.vigie.web.Tabs
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.io.File
 
@@ -73,6 +76,25 @@ class VigieViewModel(app: Application) : AndroidViewModel(app) {
         private set
     private var stopSync: (() -> Unit)? = null
 
+    /**
+     * A link opened the app: its sync waits until the page is up ([syncSoon]). Until then the list stays
+     * read-only, so a change made on this phone cannot overwrite one made elsewhere in the meantime.
+     */
+    var syncPending by mutableStateOf(false)
+        private set
+    private var pendingSync: Job? = null
+
+    /** Syncs a few seconds from now, once the page a link asked for had its start. */
+    fun syncSoon() {
+        syncPending = true
+        pendingSync?.cancel()
+        pendingSync = viewModelScope.launch {
+            delay(SYNC_DELAY_MS)
+            syncPending = false
+            syncOnOpen()
+        }
+    }
+
     val syncFolder = "Documents/Vigie"
 
     fun show(text: String) {
@@ -117,6 +139,8 @@ class VigieViewModel(app: Application) : AndroidViewModel(app) {
      * comes back), then asks Synchrotron for a sync so the account list is up to date.
      */
     fun syncOnOpen() {
+        pendingSync?.cancel()
+        syncPending = false
         if (syncing) return
         val granted = vigie.accountStore.hasStorageAccess()
         if (granted && needsStorageAccess) reloadAccounts()
@@ -147,7 +171,7 @@ class VigieViewModel(app: Application) : AndroidViewModel(app) {
     fun readOnly(): Boolean {
         when {
             needsStorageAccess -> show("Autorise d'abord l'accès aux fichiers (bandeau en haut)")
-            syncing -> show("Synchronisation en cours…")
+            syncing || syncPending -> show("Synchronisation en cours…")
             storeError != null -> show("accounts.json est illisible : corrige-le ou supprime-le")
             else -> return false
         }
@@ -210,5 +234,6 @@ class VigieViewModel(app: Application) : AndroidViewModel(app) {
 
     private companion object {
         const val KEY_SELECTED = "selected"
+        const val SYNC_DELAY_MS = 4_000L
     }
 }
