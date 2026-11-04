@@ -78,6 +78,7 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.VisibilityOff
 import app.vigie.links.Links
 import app.vigie.web.PhoneBrowser
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -185,6 +186,15 @@ private fun MainScreen(vm: VigieViewModel, tabs: Tabs, extensions: Extensions, s
                 ) {
                     TextButton(onClick = extensions::markSetupDone) { Text("C'est fait") }
                     TextButton(onClick = { vm.screen = Screen.Settings }) { Text("Configurer") }
+                }
+            }
+            vm.linkStatus?.takeIf { !it.complete }?.let { st ->
+                SuiteBanner(
+                    if (!st.allowed) "Android ouvre encore les liens Instagram, TikTok… dans le navigateur : « Ouverture liens pris en charge » est désactivé pour Vigie."
+                    else "Seulement ${st.selected} adresses cochées sur ${st.total} : les autres liens s'ouvrent encore dans le navigateur.",
+                    title = "Liens des réseaux", icon = Icons.Default.Link,
+                ) {
+                    TextButton(onClick = { PhoneBrowser.openLinkSettings(activity) }) { Text("Régler") }
                 }
             }
             UpdateBanner(vm.updates)

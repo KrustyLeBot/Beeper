@@ -91,6 +91,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         tabs.onStart()
         vm.syncOnOpen()
+        vm.checkLinks()
         vm.updates.checkOnOpen()
         (application as VigieApp).extensions.updateIfStale()
     }

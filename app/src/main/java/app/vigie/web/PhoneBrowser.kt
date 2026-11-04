@@ -4,12 +4,36 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.verify.domain.DomainVerificationManager
+import android.content.pm.verify.domain.DomainVerificationUserState
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 
+/** What Android lets Vigie open: [allowed] is the "Ouverture liens pris en charge" switch, [selected] of [total] addresses ticked. */
+data class LinkStatus(val allowed: Boolean, val selected: Int, val total: Int) {
+    val complete: Boolean get() = allowed && selected == total
+}
+
 /** Hand-offs to the rest of the phone. */
 object PhoneBrowser {
+    /**
+     * Android's own record of which network addresses the user let Vigie open (Android 12 and later;
+     * null before, where the system asks with a chooser instead).
+     */
+    fun linkStatus(context: Context): LinkStatus? {
+        if (Build.VERSION.SDK_INT < 31) return null
+        val manager = context.getSystemService(DomainVerificationManager::class.java) ?: return null
+        val state = try {
+            manager.getDomainVerificationUserState(context.packageName)
+        } catch (e: PackageManager.NameNotFoundException) {
+            return null
+        } ?: return null
+        val hosts = state.hostToStateMap
+        val selected = hosts.values.count { it != DomainVerificationUserState.DOMAIN_STATE_NONE }
+        return LinkStatus(state.isLinkHandlingAllowed, selected, hosts.size)
+    }
+
     /**
      * Opens [url] in the phone's browser. Vigie itself opens the networks' links, so asking Android to
      * "view" one would come straight back here: the browser is found from a neutral address and

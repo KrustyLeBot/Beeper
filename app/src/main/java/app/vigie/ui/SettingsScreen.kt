@@ -182,6 +182,16 @@ private fun LinkSettings() {
                 "Un lien reçu (WhatsApp, SMS…) s'ouvre alors ici : dans ton compte de ce réseau s'il existe, sinon dans le navigateur temporaire.",
         )
         SettingsHint("Réseaux reconnus : " + Networks.ALL.joinToString(", ") { it.name } + ". Pour un autre lien : Partager → Vigie.")
+        PhoneBrowser.linkStatus(context)?.let { st ->
+            SettingsHint(
+                when {
+                    !st.allowed -> "État : désactivé. Les liens s'ouvrent dans le navigateur."
+                    st.complete -> "État : activé, ${st.total} adresses sur ${st.total} cochées."
+                    else -> "État : ${st.selected} adresses cochées sur ${st.total}."
+                },
+                if (st.complete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            )
+        }
         OutlinedButton(onClick = { PhoneBrowser.openLinkSettings(context) }) { Text("Ouvrir le réglage Android") }
     }
 }

@@ -14,6 +14,8 @@ import app.vigie.suite.SuiteUpdates
 import app.vigie.sync.SkipReason
 import app.vigie.sync.SyncState
 import app.vigie.sync.SynchrotronClient
+import app.vigie.web.LinkStatus
+import app.vigie.web.PhoneBrowser
 import app.vigie.web.Tabs
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -43,6 +45,14 @@ class VigieViewModel(app: Application) : AndroidViewModel(app) {
     /** The account shown when the temporary browser is not (the screen decides between the two), or null with no account. */
     val selected: Account?
         get() = accounts.firstOrNull { it.id == selectedKey } ?: accounts.firstOrNull()
+
+    /** Whether Android lets Vigie open the networks' links; re-read each time the app comes back. */
+    var linkStatus by mutableStateOf<LinkStatus?>(null)
+        private set
+
+    fun checkLinks() {
+        linkStatus = PhoneBrowser.linkStatus(getApplication())
+    }
 
     /** The link the screen must open next, once the blockers are in. */
     var pendingLink by mutableStateOf<PendingLink?>(null)
