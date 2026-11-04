@@ -57,6 +57,9 @@ class Tabs(
     private val lastPages = activity.getSharedPreferences("last_pages", Context.MODE_PRIVATE)
     private var shown: String? = null
     private val main = Handler(Looper.getMainLooper())
+    // Addresses waiting for their tab to be on screen: a page loaded in a hidden tab starts "hidden"
+    // and some players (Instagram's reels) then never autoplay.
+    private val pending = HashMap<String, String>()
     // Invisible windows opened by window.open(), kept until they get their address.
     private val catchers = HashSet<GeckoSession>()
 
@@ -72,10 +75,14 @@ class Tabs(
 
     fun session(key: String): GeckoSession? = sessions[key]
 
-    /** Puts the tab [key] ([account] null for the temporary browser) in [view], creating it on first use. */
+    /**
+     * Puts the tab [key] ([account] null for the temporary browser) in [view], creating it on first use,
+     * then loads what waits for it: a page only ever loads in a tab that is on screen and active.
+     */
     fun show(key: String, account: Account?, view: GeckoView) {
-        val session = sessions[key]?.also { if (account != null) apply(it, account) }
-            ?: create(key, account, account?.let { startUrl(it) } ?: return)
+        val existing = sessions[key]
+        if (existing == null && account == null && key !in pending) return
+        val session = existing?.also { if (account != null) apply(it, account) } ?: create(key, account)
         if (shown != key) {
             shown?.let { old -> sessions[old]?.let { deactivate(it) } }
             shown = key
@@ -87,12 +94,22 @@ class Tabs(
         session.setActive(true)
         session.setFocused(true)
         runtime.webExtensionController.setTabActive(session, true)
+        val url = pending.remove(key) ?: if (existing == null) account?.let { startUrl(it) } else null
+        url?.let { session.loadUri(it) }
     }
 
-    /** Loads [url] in the tab [key] ([account] null: the temporary browser), opening it if needed. */
+    /**
+     * Loads [url] in the tab [key] ([account] null: the temporary browser). Straight away when that tab
+     * is on screen; otherwise it waits for [show], which the screen calls once it selected the tab.
+     */
     fun open(key: String, account: Account?, url: String) {
         val session = sessions[key]
-        if (session != null) session.loadUri(url) else create(key, account, url)
+        if (session != null && shown == key) {
+            session.loadUri(url)
+            return
+        }
+        pending[key] = url
+        if (session == null) create(key, account)
         if (key == TEMPORARY) temporaryOpen = true
     }
 
@@ -155,12 +172,14 @@ class Tabs(
     private fun close(key: String) {
         val session = sessions.remove(key) ?: return
         configs.remove(key)
+        pending.remove(key)
         if (shown == key) shown = null
         extensions.detach(session)
         session.close()
     }
 
-    private fun create(key: String, account: Account?, url: String): GeckoSession {
+    /** A new tab, opened but empty: its first page is loaded by [show]. */
+    private fun create(key: String, account: Account?): GeckoSession {
         val desktop = account?.desktop == true
         val builder = GeckoSessionSettings.Builder()
             .useTrackingProtection(true)
@@ -174,7 +193,6 @@ class Tabs(
         sessions[key] = session
         account?.let { configs[key] = it }
         if (key == TEMPORARY) temporaryOpen = true
-        session.loadUri(url)
         return session
     }
 
