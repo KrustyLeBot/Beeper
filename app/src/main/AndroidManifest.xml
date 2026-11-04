@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Public Documents/Vigie folder, synced with Proton Drive by Synchrotron -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+
+    <queries>
+        <!-- Lets the app see whether Synchrotron (Proton Drive sync) is installed. -->
+        <package android:name="app.synchrotron" />
+        <!-- The phone's browser, for « Ouvrir dans le navigateur du téléphone ». -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".VigieApp"
+        android:allowBackup="false"
+        android:requestLegacyExternalStorage="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Vigie">
+
+        <!-- One task: a link opened from another app lands in the running Vigie, not a second copy. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Links of every network in links/Networks.kt (NetworksManifestTest keeps the two in step).
+                 Not verified (only the networks could): the user ticks them once in Android's
+                 "Ouvrir par défaut" settings. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:host="instagram.com" />
+                <data android:host="www.instagram.com" />
+                <data android:host="m.instagram.com" />
+                <data android:host="instagr.am" />
+                <data android:host="www.instagr.am" />
+                <data android:host="m.instagr.am" />
+                <data android:host="l.instagram.com" />
+                <data android:host="tiktok.com" />
+                <data android:host="www.tiktok.com" />
+                <data android:host="m.tiktok.com" />
+                <data android:host="vm.tiktok.com" />
+                <data android:host="vt.tiktok.com" />
+                <data android:host="facebook.com" />
+                <data android:host="www.facebook.com" />
+                <data android:host="m.facebook.com" />
+                <data android:host="fb.com" />
+                <data android:host="www.fb.com" />
+                <data android:host="m.fb.com" />
+                <data android:host="fb.watch" />
+                <data android:host="www.fb.watch" />
+                <data android:host="m.fb.watch" />
+                <data android:host="fb.me" />
+                <data android:host="www.fb.me" />
+                <data android:host="m.fb.me" />
+                <data android:host="l.facebook.com" />
+                <data android:host="lm.facebook.com" />
+                <data android:host="web.facebook.com" />
+                <data android:host="x.com" />
+                <data android:host="www.x.com" />
+                <data android:host="m.x.com" />
+                <data android:host="twitter.com" />
+                <data android:host="www.twitter.com" />
+                <data android:host="m.twitter.com" />
+                <data android:host="t.co" />
+                <data android:host="www.t.co" />
+                <data android:host="m.t.co" />
+                <data android:host="mobile.twitter.com" />
+                <data android:host="mobile.x.com" />
+                <data android:host="youtube.com" />
+                <data android:host="www.youtube.com" />
+                <data android:host="m.youtube.com" />
+                <data android:host="youtu.be" />
+                <data android:host="www.youtu.be" />
+                <data android:host="m.youtu.be" />
+                <data android:host="music.youtube.com" />
+                <data android:host="reddit.com" />
+                <data android:host="www.reddit.com" />
+                <data android:host="m.reddit.com" />
+                <data android:host="redd.it" />
+                <data android:host="www.redd.it" />
+                <data android:host="m.redd.it" />
+                <data android:host="old.reddit.com" />
+                <data android:host="new.reddit.com" />
+                <data android:host="linkedin.com" />
+                <data android:host="www.linkedin.com" />
+                <data android:host="m.linkedin.com" />
+                <data android:host="lnkd.in" />
+                <data android:host="www.lnkd.in" />
+                <data android:host="m.lnkd.in" />
+                <data android:host="fr.linkedin.com" />
+                <data android:host="pinterest.fr" />
+                <data android:host="www.pinterest.fr" />
+                <data android:host="m.pinterest.fr" />
+                <data android:host="pinterest.com" />
+                <data android:host="www.pinterest.com" />
+                <data android:host="m.pinterest.com" />
+                <data android:host="pin.it" />
+                <data android:host="www.pin.it" />
+                <data android:host="m.pin.it" />
+                <data android:host="fr.pinterest.com" />
+                <data android:host="threads.net" />
+                <data android:host="www.threads.net" />
+                <data android:host="m.threads.net" />
+                <data android:host="threads.com" />
+                <data android:host="www.threads.com" />
+                <data android:host="m.threads.com" />
+                <data android:host="bsky.app" />
+                <data android:host="www.bsky.app" />
+                <data android:host="m.bsky.app" />
+                <data android:host="snapchat.com" />
+                <data android:host="www.snapchat.com" />
+                <data android:host="m.snapchat.com" />
+                <data android:host="twitch.tv" />
+                <data android:host="www.twitch.tv" />
+                <data android:host="m.twitch.tv" />
+                <data android:host="clips.twitch.tv" />
+                <data android:host="tumblr.com" />
+                <data android:host="www.tumblr.com" />
+                <data android:host="m.tumblr.com" />
+            </intent-filter>
+
+            <!-- « Partager → Vigie » from any app, for links outside the list or when a setting was reset. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>
