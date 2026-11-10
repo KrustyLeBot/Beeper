@@ -49,7 +49,7 @@ class PortixViewModel(app: Application) : AndroidViewModel(app) {
     val selected: Account?
         get() = accounts.firstOrNull { it.id == selectedKey } ?: accounts.firstOrNull()
 
-    /** Whether Android lets Portix open the networks' links; re-read each time the app comes back. */
+    /** Whether Android lets Portix open the networks' links, shown in Réglages; re-read each time the app comes back. */
     var linkStatus by mutableStateOf<LinkStatus?>(null)
         private set
 

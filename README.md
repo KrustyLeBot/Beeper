@@ -53,7 +53,7 @@ Android only gives a web link to an app the site itself vouches for (an `assetli
 the domain), which only the networks' own apps have. Any other app must be allowed by the user, once,
 per address, and only for addresses no installed app has verified: an app that did (preinstalled Meta
 apps on Samsung, even disabled) keeps them, and Android unticks them for Portix. Réglages → Liens
-shows how many addresses are ticked and lists the apps that keep some; turning off their « Ouverture
+shows how many addresses are ticked (no banner elsewhere: leaving some unticked is a choice) and lists the apps that keep some; turning off their « Ouverture
 liens pris en charge » (or uninstalling them) frees the addresses.
 
 1. Réglages → Liens → « Ouvrir le réglage Android » (or Android's Settings → Apps → Portix →

@@ -48,6 +48,7 @@ import app.portix.suite.SyncSettings
 import app.portix.suite.UpdateSettings
 import app.portix.links.Networks
 import app.portix.web.Extensions
+import app.portix.web.LinkStatus
 import app.portix.web.PhoneBrowser
 import app.portix.web.Tabs
 
@@ -85,7 +86,7 @@ fun SettingsScreen(vm: PortixViewModel, tabs: Tabs, extensions: Extensions, snac
                 }
             }
 
-            LinkSettings()
+            LinkSettings(vm.linkStatus)
             (LocalContext.current.applicationContext as PortixApp).startup.last?.let { last ->
                 SectionTitle("Dernier démarrage")
                 SettingsCard {
@@ -180,7 +181,7 @@ private fun ProtectionSettings(extensions: Extensions, open: (String, String) ->
 
 /** Android's per-app "open by default" page, where the networks' addresses are ticked once. */
 @Composable
-private fun LinkSettings() {
+private fun LinkSettings(status: LinkStatus?) {
     val context = LocalContext.current
     SectionTitle("Liens")
     SettingsCard {
@@ -190,14 +191,15 @@ private fun LinkSettings() {
                 "Un lien reçu (WhatsApp, SMS…) s'ouvre alors ici : dans ton compte de ce réseau s'il existe, sinon dans le navigateur temporaire.",
         )
         SettingsHint("Réseaux reconnus : " + Networks.ALL.joinToString(", ") { it.name } + ". Pour un autre lien : Partager → Portix.")
-        PhoneBrowser.linkStatus(context)?.let { st ->
+        // Unticking some addresses is a choice (a network kept in its own app), so only "off" reads as a problem.
+        status?.let { st ->
             SettingsHint(
                 when {
                     !st.allowed -> "État : désactivé. Les liens s'ouvrent dans le navigateur."
                     st.complete -> "État : activé, ${st.total} adresses sur ${st.total} cochées."
-                    else -> "État : ${st.selected} adresses cochées sur ${st.total}."
+                    else -> "État : activé, ${st.selected} adresses cochées sur ${st.total}. Les autres s'ouvrent dans le navigateur ou leur appli."
                 },
-                if (st.complete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                if (st.allowed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
             )
         }
         OutlinedButton(onClick = { PhoneBrowser.openLinkSettings(context) }) { Text("Ouvrir le réglage Android") }
