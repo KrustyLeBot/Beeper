@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "app.portix"
+    namespace = "app.beeper"
     // GeckoView (the Firefox engine) is built against Android 17 (API 37.2).
     compileSdk {
         version = release(37) { minorApiLevel = 2 }
     }
 
     defaultConfig {
-        applicationId = "app.portix"
+        applicationId = "app.beeper"
         minSdk = 26
         targetSdk = 35
         // Grows with every CI run so each new APK installs over the previous one.
@@ -21,13 +21,13 @@ android {
 
     signingConfigs {
         // Fixed release key, injected by CI from the `release` environment's secrets. Never committed.
-        val keystore = System.getenv("PORTIX_KEYSTORE")
+        val keystore = System.getenv("BEEPER_KEYSTORE")
         if (keystore != null && file(keystore).exists()) {
             create("release") {
                 storeFile = file(keystore)
-                storePassword = System.getenv("PORTIX_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("PORTIX_KEY_ALIAS") ?: "portix"
-                keyPassword = System.getenv("PORTIX_KEY_PASSWORD")
+                storePassword = System.getenv("BEEPER_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("BEEPER_KEY_ALIAS") ?: "beeper"
+                keyPassword = System.getenv("BEEPER_KEY_PASSWORD")
             }
         }
     }

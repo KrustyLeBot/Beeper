@@ -13,5 +13,5 @@ dependencyResolutionManagement {
         maven("https://maven.mozilla.org/maven2/")
     }
 }
-rootProject.name = "Portix"
+rootProject.name = "Beeper"
 include(":app")

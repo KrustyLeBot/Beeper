@@ -1,0 +1,88 @@
+package app.beeper.web
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.verify.domain.DomainVerificationManager
+import android.content.pm.verify.domain.DomainVerificationUserState
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+
+/** What Android lets Beeper open: [allowed] is the "Ouverture liens pris en charge" switch, [selected] of [total] addresses ticked. */
+data class LinkStatus(val allowed: Boolean, val selected: Int, val total: Int) {
+    val complete: Boolean get() = allowed && selected == total
+}
+
+/** Hand-offs to the rest of the phone. */
+object PhoneBrowser {
+    /**
+     * Android's own record of which network addresses the user let Beeper open (Android 12 and later;
+     * null before, where the system asks with a chooser instead).
+     */
+    fun linkStatus(context: Context): LinkStatus? {
+        if (Build.VERSION.SDK_INT < 31) return null
+        val manager = context.getSystemService(DomainVerificationManager::class.java) ?: return null
+        val state = try {
+            manager.getDomainVerificationUserState(context.packageName)
+        } catch (e: PackageManager.NameNotFoundException) {
+            return null
+        } ?: return null
+        val hosts = state.hostToStateMap
+        val selected = hosts.values.count { it != DomainVerificationUserState.DOMAIN_STATE_NONE }
+        return LinkStatus(state.isLinkHandlingAllowed, selected, hosts.size)
+    }
+
+    /**
+     * Opens [url] in the phone's browser. Beeper itself opens the networks' links, so asking Android to
+     * "view" one would come straight back here: the browser is found from a neutral address and
+     * named explicitly, or picked from a chooser that leaves Beeper out.
+     */
+    fun open(context: Context, url: String) {
+        val view = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val browser = context.packageManager
+            .resolveActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://example.org/")), PackageManager.MATCH_DEFAULT_ONLY)
+            ?.activityInfo?.packageName
+        if (browser != null && browser != context.packageName && browser != "android") {
+            context.startActivity(view.setPackage(browser))
+        } else {
+            val chooser = Intent.createChooser(view, "Ouvrir avec")
+                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, "app.beeper.MainActivity")))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(chooser)
+        }
+    }
+
+    /**
+     * The other apps that claim [url] (disabled ones included: a preinstalled, disabled Facebook still
+     * owns facebook.com), browsers left out. On Android 12+ an app that verified a domain keeps it, and
+     * Android unticks that address for Beeper: these are the apps to uninstall or to strip of the link.
+     */
+    fun claimants(context: Context, url: String): List<String> {
+        val pm = context.packageManager
+        val flags = PackageManager.MATCH_ALL or PackageManager.MATCH_DISABLED_COMPONENTS or PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS
+        fun handlers(u: String) = pm.queryIntentActivities(Intent(Intent.ACTION_VIEW, Uri.parse(u)).addCategory(Intent.CATEGORY_BROWSABLE), flags)
+            .map { it.activityInfo.packageName }.toSet()
+        val browsers = handlers("https://example.org/")
+        return (handlers(url) - browsers - context.packageName).map { pkg ->
+            try {
+                val info = pm.getApplicationInfo(pkg, PackageManager.MATCH_DISABLED_COMPONENTS)
+                val label = pm.getApplicationLabel(info).toString()
+                if (info.enabled) label else "$label (désactivée)"
+            } catch (e: PackageManager.NameNotFoundException) {
+                pkg
+            }
+        }.sorted()
+    }
+
+    /** Android's "Ouvrir par défaut" page for Beeper, where the networks' addresses are ticked once. */
+    fun openLinkSettings(context: Context) {
+        val intent = if (Build.VERSION.SDK_INT >= 31) {
+            Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, Uri.parse("package:${context.packageName}"))
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
+        }
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+}

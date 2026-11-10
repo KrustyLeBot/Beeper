@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
-  <!-- Portix launcher background: the mustard diagonal gradient, full bleed. -->
-  <defs><linearGradient id="g" x1="0" y1="0" x2="108" y2="108" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F7AE2A"/><stop offset="1" stop-color="#B8520A"/></linearGradient></defs>
+  <!-- Beeper launcher background: the sunset diagonal gradient, full bleed. -->
+  <defs><linearGradient id="g" x1="0" y1="0" x2="108" y2="108" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFB347"/><stop offset="1" stop-color="#E0457B"/></linearGradient></defs>
   <rect width="108" height="108" fill="url(#g)"/>
 </svg>
